@@ -25,16 +25,15 @@ def check_local_setup():
     # Check 2: Vectorstore
     vectorstore_path = Path("chroma_cord19")
     if vectorstore_path.exists():
-        success.append("✅ Local vectorstore found")
         # Check if it has content
         files = list(vectorstore_path.glob("**/*"))
         if len(files) > 0:
-            success.append(f"✅ Vectorstore contains {len(files)} files")
+            success.append(f"✅ Local vectorstore found with {len(files)} files")
         else:
-            issues.append("❌ Vectorstore directory is empty")
+            success.append("⚠️  Empty vectorstore directory (will download from HF)")
     else:
-        issues.append("❌ Local vectorstore not found")
-        print("   💡 This is OK for deployment, but needed for local dev")
+        success.append("ℹ️  No local vectorstore (will download from HF on first run)")
+        print("   💡 This is the expected setup for deployment")
     
     # Check 3: Required packages
     try:
