@@ -22,6 +22,12 @@ def check_local_setup():
         issues.append("❌ OPENAI_API_KEY not found in environment")
         print("   💡 Create .env file with: OPENAI_API_KEY=your-key-here")
     
+    # Check optional Langchain tracing
+    if os.getenv("LANGCHAIN_API_KEY"):
+        success.append("✅ Langchain tracing configured (optional)")
+    else:
+        success.append("ℹ️  Langchain tracing not configured (optional)")
+    
     # Check 2: Vectorstore
     vectorstore_path = Path("chroma_cord19")
     if vectorstore_path.exists():

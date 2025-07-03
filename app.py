@@ -216,6 +216,15 @@ def main():
             st.error("❌ OpenAI API Key not found")
             st.info("Please add OPENAI_API_KEY to Streamlit secrets or .env file")
         
+        # Optional: Set up Langchain tracing if configured
+        langchain_config = st.secrets.get("langchain", {})
+        if langchain_config.get("LANGCHAIN_API_KEY"):
+            os.environ["LANGCHAIN_API_KEY"] = langchain_config["LANGCHAIN_API_KEY"]
+            os.environ["LANGCHAIN_TRACING_V2"] = langchain_config.get("LANGCHAIN_TRACING_V2", "true")
+            os.environ["LANGCHAIN_PROJECT"] = langchain_config.get("LANGCHAIN_PROJECT", "covid19-rag-chatbot")
+            os.environ["LANGCHAIN_ENDPOINT"] = langchain_config.get("LANGCHAIN_ENDPOINT", "https://api.smith.langchain.com")
+            st.info("🔍 Langchain tracing enabled")
+        
         st.markdown("---")
         st.header("📚 About")
         st.info("""

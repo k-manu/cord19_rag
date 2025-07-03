@@ -77,12 +77,22 @@ git push origin main
 In the Streamlit Cloud dashboard, add these secrets:
 
 ```toml
+# Required secrets
 [openai]
 OPENAI_API_KEY = "sk-your-actual-openai-api-key"
 
 [huggingface]
 HF_DATASET_ID = "your-username/covid19-cord19-vectorstore"
+
+# Optional: Langchain monitoring/tracing (for debugging)
+[langchain]
+LANGCHAIN_API_KEY = "your-langchain-api-key"
+LANGCHAIN_TRACING_V2 = "true"
+LANGCHAIN_PROJECT = "covid19-rag-chatbot"
+LANGCHAIN_ENDPOINT = "https://api.smith.langchain.com"
 ```
+
+**Note**: Only the OpenAI and Hugging Face secrets are required. Langchain secrets are optional and only needed if you want to use [Langchain Smith](https://smith.langchain.com/) for monitoring and debugging your LLM calls.
 
 ## Step 3: First Run
 
