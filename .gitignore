@@ -39,6 +39,10 @@ ipython_config.py
 # *.tar.gz
 # cord-19/
 
+# Vectorstore files (hosted on Hugging Face)
+chroma_cord19/
+vectorstore/
+
 # IDE
 .vscode/
 .idea/

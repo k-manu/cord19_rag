@@ -1,14 +1,19 @@
 import streamlit as st
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_community.vectorstores import Chroma
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
+from huggingface_hub import hf_hub_download, snapshot_download
 
 # Load environment variables
 load_dotenv()
+
+# Configuration - UPDATE THIS WITH YOUR HUGGING FACE DATASET ID
+HF_DATASET_ID = st.secrets.get("huggingface", {}).get("HF_DATASET_ID", "YOUR_USERNAME/covid19-cord19-vectorstore")
 
 # Page configuration
 st.set_page_config(
@@ -70,10 +75,72 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+def download_vectorstore_from_hf():
+    """Download vectorstore from Hugging Face if it doesn't exist locally"""
+    vectorstore_path = Path("chroma_cord19")
+    
+    if vectorstore_path.exists():
+        st.info("ℹ️ Using existing local vectorstore")
+        return True
+    
+    if HF_DATASET_ID == "YOUR_USERNAME/covid19-cord19-vectorstore":
+        st.error("❌ Please update HF_DATASET_ID in app.py with your actual Hugging Face dataset ID")
+        st.info("💡 Run upload_to_hf.py first to upload your vectorstore, then update the HF_DATASET_ID variable")
+        return False
+    
+    try:
+        st.info(f"📥 Downloading vectorstore from Hugging Face: {HF_DATASET_ID}")
+        
+        # Create a progress bar
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        
+        status_text.text("Downloading vectorstore files...")
+        progress_bar.progress(25)
+        
+        # Download the entire vectorstore folder from HF
+        snapshot_download(
+            repo_id=HF_DATASET_ID,
+            repo_type="dataset",
+            local_dir=".",
+            allow_patterns="vectorstore/*"
+        )
+        
+        progress_bar.progress(75)
+        status_text.text("Organizing files...")
+        
+        # Move files from vectorstore/ to chroma_cord19/
+        downloaded_path = Path("vectorstore")
+        if downloaded_path.exists():
+            if vectorstore_path.exists():
+                import shutil
+                shutil.rmtree(vectorstore_path)
+            downloaded_path.rename(vectorstore_path)
+        
+        progress_bar.progress(100)
+        status_text.text("✅ Vectorstore downloaded successfully!")
+        
+        # Clean up progress indicators after a short delay
+        import time
+        time.sleep(2)
+        progress_bar.empty()
+        status_text.empty()
+        
+        return True
+        
+    except Exception as e:
+        st.error(f"❌ Error downloading vectorstore: {str(e)}")
+        st.info("💡 Please check your HF_DATASET_ID and ensure the dataset exists and is public")
+        return False
+
 @st.cache_resource
 def initialize_rag_chain():
     """Initialize the RAG chain with cached vectorstore"""
     try:
+        # Download vectorstore if needed
+        if not download_vectorstore_from_hf():
+            return None, None
+        
         # Initialize embeddings
         embedding_model = OpenAIEmbeddings()
         
@@ -140,11 +207,14 @@ def main():
         st.header("🔧 Configuration")
         
         # Check if API key is available
-        if os.getenv("OPENAI_API_KEY"):
+        openai_key = st.secrets.get("openai", {}).get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
+        if openai_key:
             st.success("✅ OpenAI API Key loaded")
+            # Set environment variable for langchain to use
+            os.environ["OPENAI_API_KEY"] = openai_key
         else:
             st.error("❌ OpenAI API Key not found")
-            st.info("Please ensure your .env file contains OPENAI_API_KEY")
+            st.info("Please add OPENAI_API_KEY to Streamlit secrets or .env file")
         
         st.markdown("---")
         st.header("📚 About")
@@ -153,7 +223,15 @@ def main():
         - **CORD-19 Dataset**: 2000 recent COVID-19 research papers
         - **Vector Search**: Chroma vectorstore with OpenAI embeddings
         - **LLM**: GPT-3.5-turbo for generating responses
+        - **Storage**: Vectorstore hosted on Hugging Face for scalable deployment
         """)
+        
+        # Show vectorstore status
+        vectorstore_path = Path("chroma_cord19")
+        if vectorstore_path.exists():
+            st.success("✅ Vectorstore loaded")
+        else:
+            st.warning("⏳ Vectorstore will be downloaded on first use")
         
         if st.button("🗑️ Clear Chat History"):
             st.session_state.messages = []
