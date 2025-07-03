@@ -48,14 +48,19 @@ HF_DATASET_ID = "your-actual-username/covid19-cord19-vectorstore"
 
 ## Step 2: Deploy to Streamlit Community Cloud
 
-### 2.1 Push to GitHub
+### 2.1 Remove Large Files and Push to GitHub
 
 ```bash
-# Add all files except vectorstore (already in .gitignore)
+# Remove vectorstore from Git (too large for Streamlit deployment)
+git rm --cached -r chroma_cord19
+
+# Add all files except vectorstore (in .gitignore)
 git add .
-git commit -m "Prepare for deployment with HF integration"
+git commit -m "Remove large files, deploy with HF vectorstore download"
 git push origin main
 ```
+
+**Note**: Streamlit Community Cloud has size limits, so we exclude the vectorstore files and download them from Hugging Face at runtime instead.
 
 ### 2.2 Deploy on Streamlit Cloud
 

@@ -1,2 +1,2 @@
-chroma_cord19/*.sqlite3 filter=lfs diff=lfs merge=lfs -text
-chroma_cord19/**/*.bin filter=lfs diff=lfs merge=lfs -text
+# Git LFS not used - large files hosted on Hugging Face instead
+# This keeps the deployment size small for Streamlit Community Cloud

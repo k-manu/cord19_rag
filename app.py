@@ -79,7 +79,7 @@ def download_vectorstore_from_hf():
     """Download vectorstore from Hugging Face if it doesn't exist locally"""
     vectorstore_path = Path("chroma_cord19")
     
-    if vectorstore_path.exists():
+    if vectorstore_path.exists() and len(list(vectorstore_path.glob("**/*"))) > 0:
         st.info("ℹ️ Using existing local vectorstore")
         return True
     

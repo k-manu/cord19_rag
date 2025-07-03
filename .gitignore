@@ -39,7 +39,7 @@ ipython_config.py
 # *.tar.gz
 # cord-19/
 
-# Vectorstore files (hosted on Hugging Face)
+# Vectorstore files (hosted on Hugging Face) - too large for Streamlit deployment
 chroma_cord19/
 vectorstore/
 
